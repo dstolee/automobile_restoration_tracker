@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Not found · Restoration Tracker{% endblock %}
+{% block content %}
+<div class="card empty"><h1>Page not found</h1><p>The requested project or record does not exist.</p><a class="button" href="{{ url_for('main.dashboard') }}">Return to dashboard</a></div>
+{% endblock %}

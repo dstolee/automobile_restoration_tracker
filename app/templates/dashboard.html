@@ -1,0 +1,46 @@
+\
+{% extends "base.html" %}
+{% block title %}Dashboard · Restoration Tracker{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Restoration dashboard</h1><p>Plan the work, document the details, and keep the parts hunt under control.</p></div>
+  <a class="button" href="{{ url_for('main.project_new') }}">+ New project</a>
+</div>
+<div class="project-grid">
+{% for p in projects %}
+<a class="card project-card" href="{{ url_for('main.project_detail', project_id=p.id) }}">
+  <div class="project-cover">
+    {% if p.cover_filename %}
+      <img src="{{ url_for('main.uploaded_file', filename=p.cover_filename) }}" alt="{{ p.vehicle_name }} project cover" loading="lazy">
+    {% else %}
+      <div class="project-cover-placeholder" aria-label="No project cover image">
+        <span aria-hidden="true">🚘</span>
+        <small>Add a project photo</small>
+      </div>
+    {% endif %}
+    <span class="badge project-status">{{ p.status }}</span>
+  </div>
+  <div class="project-card-body">
+    <h2>{{ p.name }}</h2>
+    <p>{{ p.vehicle_name }}</p>
+    <div class="progress"><span style="width:{{ p.completion }}%"></span></div>
+    <div class="metric-row"><span>{{ p.completion }}% complete</span><span>${{ '%.2f'|format(p.total_spent) }}</span></div>
+  </div>
+</a>
+{% else %}
+<div class="empty card"><h2>No projects yet</h2><p>Create your first vehicle restoration project.</p></div>
+{% endfor %}
+</div>
+<div class="two-col">
+<section class="card"><h2>Upcoming work</h2>
+{% for j in upcoming %}
+<p><a href="{{ url_for('main.job_detail', job_id=j.id) }}">{{ j.title }}</a><br><small>{{ j.project.name }} · due {{ j.due_date }}</small></p>
+{% else %}<p class="muted">No dated work items.</p>{% endfor %}
+</section>
+<section class="card"><h2>Blocked work</h2>
+{% for j in blocked %}
+<p><a href="{{ url_for('main.job_detail', job_id=j.id) }}">{{ j.title }}</a><br><small>{{ j.project.name }}</small></p>
+{% else %}<p class="muted">Nothing is blocked.</p>{% endfor %}
+</section>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+\
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ "Edit project" if project else "New restoration project" }}</h1>
+<form method="post" enctype="multipart/form-data" class="card form-grid">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label class="wide">Project name<input required name="name" value="{{ project.name if project else '' }}" placeholder="Grandfather's 1950 GMC"></label>
+<label>Year<input type="number" name="year" value="{{ project.year if project and project.year else '' }}"></label>
+<label>Make<input name="make" value="{{ project.make if project else '' }}"></label>
+<label>Model<input name="model" value="{{ project.model if project else '' }}"></label>
+<label>VIN / serial<input name="vin" value="{{ project.vin if project else '' }}"></label>
+<label>Current colour<input name="colour" value="{{ project.colour if project else '' }}"></label>
+<label class="wide">Dashboard cover image
+  <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+  <small>JPG, PNG, or WebP. A wide landscape photo works best.</small>
+</label>
+{% if project and project.cover_filename %}
+<div class="wide current-cover">
+  <img src="{{ url_for('main.uploaded_file', filename=project.cover_filename) }}" alt="Current cover image for {{ project.name }}">
+  <label class="remove-cover"><input type="checkbox" name="remove_cover" value="1"> Remove current cover image</label>
+</div>
+{% endif %}
+<label>Status<select name="status">{% for x in ["Planning","Active","On Hold","Complete"] %}<option {% if project and project.status==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label>Target date<input type="date" name="target_date" value="{{ project.target_date if project and project.target_date else '' }}"></label>
+<label class="wide">Restoration vision / scope<textarea name="target_description" rows="6">{{ project.target_description if project else '' }}</textarea></label>
+<div class="wide"><button>Save project</button></div>
+</form>
+{% endblock %}

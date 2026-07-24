@@ -1,0 +1,22 @@
+\
+{% extends "base.html" %}
+{% block title %}{{ job.title }} · Restoration Tracker{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('main.project_detail', project_id=job.project.id) }}">← {{ job.project.name }}</a></p>
+<div class="page-head"><div><span class="priority {{ job.priority|lower }}">{{ job.priority }}</span><h1>{{ job.title }}</h1><p>{{ job.category }} · {{ job.status }}</p></div><a class="button" href="{{ url_for('main.job_edit', job_id=job.id) }}">Edit</a></div>
+<div class="stats"><div><strong>{{ job.estimated_hours or "—" }}</strong><span>estimated hours</span></div><div><strong>{{ job.actual_hours or "—" }}</strong><span>actual hours</span></div><div><strong>${{ job.estimated_cost or "—" }}</strong><span>estimated cost</span></div><div><strong>{{ job.due_date or "—" }}</strong><span>due date</span></div></div>
+<div class="two-col">
+<section class="card"><h2>Description</h2><p class="pre">{{ job.description or "No description yet." }}</p></section>
+<section class="card"><h2>Procedure and findings</h2><p class="pre">{{ job.procedure or "No procedure or findings yet." }}</p></section>
+</div>
+<section><h2>Photo log</h2><div class="photo-grid">
+{% for p in job.photos|sort(attribute='uploaded_at', reverse=true) %}
+<figure class="photo-card"><a href="{{ url_for('main.uploaded_file', filename=p.filename) }}" target="_blank"><img loading="lazy" src="{{ url_for('main.uploaded_file', filename=p.filename) }}"></a><figcaption><span class="badge">{{ p.stage }}</span> {{ p.caption or p.original_filename }}<form method="post" action="{{ url_for('main.photo_delete', photo_id=p.id) }}" onsubmit="return confirm('Delete this photo?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Delete</button></form></figcaption></figure>
+{% endfor %}</div>
+<form method="post" enctype="multipart/form-data" action="{{ url_for('main.photo_add', job_id=job.id) }}" class="card form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Image<input required type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label><label>Stage<select name="stage"><option>Before</option><option selected>Progress</option><option>After</option><option>Reference</option><option>Problem</option></select></label><label>Taken date<input type="date" name="taken_date"></label><label class="wide">Caption<input name="caption" placeholder="Driver-side drum before disassembly"></label><button>Upload photo</button></form>
+</section>
+<div class="two-col">
+<section><h2>Related parts</h2>{% for p in job.parts %}<div class="card compact"><strong>{{ p.name }}</strong><br><small>{{ p.status }} · {{ p.part_number or "No part number" }}</small></div>{% else %}<p class="muted">No parts linked.</p>{% endfor %}</section>
+<section><h2>Related links</h2>{% for x in job.links %}<div class="card compact"><a target="_blank" rel="noopener" href="{{ x.url }}">{{ x.title }}</a></div>{% else %}<p class="muted">No links attached.</p>{% endfor %}</section>
+</div>
+{% endblock %}

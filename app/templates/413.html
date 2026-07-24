@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Upload too large · Restoration Tracker{% endblock %}
+{% block content %}
+<div class="card empty"><h1>Upload too large</h1><p>The selected file exceeds the configured upload limit.</p><a class="button" href="{{ request.referrer or url_for('main.dashboard') }}">Go back</a></div>
+{% endblock %}

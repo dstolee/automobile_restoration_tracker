@@ -1,0 +1,23 @@
+\
+{% extends "base.html" %}
+{% block content %}
+<p><a href="{{ url_for('main.project_detail', project_id=project.id) }}">← {{ project.name }}</a></p>
+<h1>{{ "Edit work item" if job else "Add work item" }}</h1>
+<form method="post" class="card form-grid">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label class="wide">Title<input required name="title" value="{{ job.title if job else '' }}" placeholder="Rebuild front brakes"></label>
+<label>Category<select name="category">{% for x in job_categories %}<option {% if job and job.category==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label>Status<select name="status">{% for x in job_statuses %}<option {% if job and job.status==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label>Priority<select name="priority">{% for x in priorities %}<option {% if job and job.priority==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label>Assigned to<input name="assigned_to" value="{{ job.assigned_to if job else '' }}"></label>
+<label>Work location<input name="location" value="{{ job.location if job else '' }}" placeholder="Home garage / machine shop"></label>
+<label>Due date<input type="date" name="due_date" value="{{ job.due_date if job and job.due_date else '' }}"></label>
+<label>Completed date<input type="date" name="completed_date" value="{{ job.completed_date if job and job.completed_date else '' }}"></label>
+<label>Estimated hours<input type="number" step=".25" name="estimated_hours" value="{{ job.estimated_hours if job and job.estimated_hours is not none else '' }}"></label>
+<label>Actual hours<input type="number" step=".25" name="actual_hours" value="{{ job.actual_hours if job and job.actual_hours is not none else '' }}"></label>
+<label>Estimated cost<input type="number" step=".01" name="estimated_cost" value="{{ job.estimated_cost if job and job.estimated_cost is not none else '' }}"></label>
+<label class="wide">Description / desired result<textarea name="description" rows="5">{{ job.description if job else '' }}</textarea></label>
+<label class="wide">Procedure, measurements, torque values, lessons learned<textarea name="procedure" rows="8">{{ job.procedure if job else '' }}</textarea></label>
+<div class="wide"><button>Save work item</button></div>
+</form>
+{% endblock %}

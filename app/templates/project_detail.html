@@ -1,0 +1,45 @@
+\
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · Restoration Tracker{% endblock %}
+{% block content %}
+<div class="page-head">
+<div><span class="badge">{{ project.status }}</span><h1>{{ project.name }}</h1><p>{{ project.vehicle_name }}{% if project.vin %} · {{ project.vin }}{% endif %}</p></div>
+<div><a class="button secondary" href="{{ url_for('main.project_edit', project_id=project.id) }}">Edit project</a> <a class="button" href="{{ url_for('main.job_new', project_id=project.id) }}">+ Work item</a></div>
+</div>
+<div class="stats">
+<div><strong>{{ project.completion }}%</strong><span>complete</span></div>
+<div><strong>{{ project.jobs|length }}</strong><span>work items</span></div>
+<div><strong>{{ project.parts|length }}</strong><span>parts</span></div>
+<div><strong>${{ '%.2f'|format(project.total_spent) }}</strong><span>spent</span></div>
+</div>
+{% if project.target_description %}<section class="card"><h2>Restoration vision</h2><p class="pre">{{ project.target_description }}</p></section>{% endif %}
+
+<nav class="tabs"><a href="#work">Work</a><a href="#parts">Parts</a><a href="#links">Links</a><a href="#expenses">Expenses</a><a href="#notes">Notes</a></nav>
+
+<section id="work"><div class="section-head"><h2>Work plan</h2>
+<form class="search"><input name="q" value="{{ q }}" placeholder="Search work items"><button>Search</button></form></div>
+<div class="table-wrap"><table><thead><tr><th>Priority</th><th>Work item</th><th>Category</th><th>Status</th><th>Due</th><th>Photos</th></tr></thead><tbody>
+{% for j in jobs %}<tr><td><span class="priority {{ j.priority|lower }}">{{ j.priority }}</span></td><td><a href="{{ url_for('main.job_detail', job_id=j.id) }}">{{ j.title }}</a></td><td>{{ j.category }}</td><td>{{ j.status }}</td><td>{{ j.due_date or "—" }}</td><td>{{ j.photos|length }}</td></tr>
+{% else %}<tr><td colspan="6">No work items found.</td></tr>{% endfor %}
+</tbody></table></div></section>
+
+<section id="parts"><h2>Parts list</h2>
+<div class="table-wrap"><table><thead><tr><th>Part</th><th>Number</th><th>Qty</th><th>Supplier</th><th>Status</th><th>Cost</th><th>Storage</th><th>Update</th></tr></thead><tbody>
+{% for x in project.parts %}<tr><td>{% if x.url %}<a target="_blank" rel="noopener" href="{{ x.url }}">{{ x.name }}</a>{% else %}{{ x.name }}{% endif %}</td><td>{{ x.part_number or "—" }}</td><td>{{ x.quantity }}</td><td>{{ x.supplier or "—" }}</td><td>{{ x.status }}</td><td>${{ '%.2f'|format(x.total_cost) }}</td><td>{{ x.storage_location or "—" }}</td><td><details><summary>Edit</summary><form method="post" action="{{ url_for('main.part_edit', part_id=x.id) }}" class="mini-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select name="status">{% for s in part_statuses %}<option {% if s==x.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select><input name="quantity" type="number" value="{{ x.quantity }}"><input name="unit_cost" type="number" step=".01" value="{{ x.unit_cost or '' }}" placeholder="Unit cost"><input name="storage_location" value="{{ x.storage_location or '' }}" placeholder="Storage"><textarea name="notes" placeholder="Notes">{{ x.notes or '' }}</textarea><button>Save</button></form></details></td></tr>{% endfor %}
+</tbody></table></div>
+<details class="card add-box"><summary>Add a part</summary><form method="post" action="{{ url_for('main.part_add', project_id=project.id) }}" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Name<input required name="name"></label><label>Part number<input name="part_number"></label><label>Supplier<input name="supplier"></label><label>Website<input type="url" name="url"></label><label>Quantity<input type="number" name="quantity" value="1"></label><label>Unit cost<input type="number" step=".01" name="unit_cost"></label><label>Status<select name="status">{% for s in part_statuses %}<option>{{ s }}</option>{% endfor %}</select></label><label>Related job<select name="job_id"><option value="">General</option>{% for j in project.jobs %}<option value="{{ j.id }}">{{ j.title }}</option>{% endfor %}</select></label><label>Storage location<input name="storage_location"></label><label class="wide">Notes<textarea name="notes"></textarea></label><button>Add part</button></form></details>
+</section>
+
+<section id="links"><h2>Reference library</h2><div class="cards">
+{% for x in project.links %}<article class="card"><span class="badge">{{ x.category }}</span><h3><a target="_blank" rel="noopener" href="{{ x.url }}">{{ x.title }}</a></h3><p>{{ x.notes or "" }}</p>{% if x.job %}<small>Related to {{ x.job.title }}</small>{% endif %}</article>{% endfor %}</div>
+<details class="card add-box"><summary>Add a reference</summary><form method="post" action="{{ url_for('main.link_add', project_id=project.id) }}" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Title<input required name="title"></label><label>URL<input required type="url" name="url"></label><label>Category<input name="category" value="Reference"></label><label>Related job<select name="job_id"><option value="">General</option>{% for j in project.jobs %}<option value="{{ j.id }}">{{ j.title }}</option>{% endfor %}</select></label><label class="wide">Notes<textarea name="notes"></textarea></label><button>Add link</button></form></details>
+</section>
+
+<section id="expenses"><h2>Expense log</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Description</th><th>Amount</th></tr></thead><tbody>{% for x in project.expenses|sort(attribute='date', reverse=true) %}<tr><td>{{ x.date }}</td><td>{{ x.category }}</td><td>{{ x.vendor or "—" }}</td><td>{{ x.description }}</td><td>${{ '%.2f'|format(x.amount) }}</td></tr>{% endfor %}</tbody></table></div>
+<details class="card add-box"><summary>Add expense</summary><form method="post" action="{{ url_for('main.expense_add', project_id=project.id) }}" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Date<input type="date" name="date"></label><label>Category<input name="category" value="Parts"></label><label>Vendor<input name="vendor"></label><label>Amount<input required type="number" step=".01" name="amount"></label><label class="wide">Description<input required name="description"></label><label class="wide">Receipt or reference<input name="receipt_reference"></label><button>Add expense</button></form></details>
+</section>
+
+<section id="notes"><h2>Notes and records</h2><div class="cards">{% for x in project.notes|sort(attribute='created_at', reverse=true) %}<article class="card"><span class="badge">{{ x.note_type }}</span><h3>{{ x.title }}</h3><p class="pre">{{ x.body }}</p><small>{{ x.created_at.strftime('%Y-%m-%d') }}</small></article>{% endfor %}</div>
+<details class="card add-box"><summary>Add note</summary><form method="post" action="{{ url_for('main.note_add', project_id=project.id) }}" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Title<input required name="title"></label><label>Type<input name="note_type" value="General"></label><label class="wide">Note<textarea rows="6" name="body"></textarea></label><button>Add note</button></form></details>
+</section>
+{% endblock %}

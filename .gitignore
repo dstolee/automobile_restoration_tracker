@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+instance/*.db
+instance/uploads/*
+!instance/uploads/.gitkeep
+data/
+backups/
+.DS_Store
+Thumbs.db

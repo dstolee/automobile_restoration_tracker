@@ -1,0 +1,16 @@
+services:
+  restoration-tracker:
+    build: .
+    container_name: restoration-tracker
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: "${SECRET_KEY:-replace-this-before-use}"
+      DATABASE_URL: "sqlite:////data/restoration.db"
+      UPLOAD_FOLDER: "/data/uploads"
+      MAX_UPLOAD_MB: "${MAX_UPLOAD_MB:-20}"
+    volumes:
+      - ./data:/data
+    security_opt:
+      - no-new-privileges:true
